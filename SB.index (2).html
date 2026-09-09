@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Laser Cutting Works — Worksheet</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  #lq-calc {
+    /* Theme Palette derived from GLOBAL Business Card */
+    --ink: #2c2c2c;
+    --ink-dim: #6e6e6e;
+    --bg: #f4f3f0;
+    --bg-panel: #ffffff;
+    --line: #e2ded7;
+    --accent: #e06d44;           /* Warm Terracotta Orange */
+    --accent-dim: #c5532b;
+    --brand-purple: #533972;     /* Deep Purple */
+    --good: #408d57;
+    --danger: #c9645a;
+    
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    padding: 24px;
+    border-radius: 8px;
+    max-width: 960px;
+    margin: 0 auto;
+    position: relative;
+  }
+  #lq-calc * { box-sizing: border-box; }
+  
+  .lq-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid var(--brand-purple);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .lq-head h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.02em;
+    color: var(--brand-purple);
+  }
+  .lq-head .lq-sub {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .lq-head-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .lq-btn-sm {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .lq-btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .lq-btn-excel {
+    background: #1e6b37;
+    border: 1px solid #288c48;
+    color: #fff;
+  }
+  .lq-btn-excel:hover { border-color: #34b35c; color: #fff; background: #248243; }
+
+  .lq-customer-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+  .lq-customer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .lq-customer-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .lq-section-title {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--brand-purple);
+    margin: 0 0 12px 0;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  #lq-sheets { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .lq-sheet {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px;
+    position: relative;
+  }
+  .lq-sheet-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .lq-sheet-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brand-purple);
+  }
+  .lq-sheet-remove {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 6px;
+  }
+  .lq-sheet-remove:hover { text-decoration: underline; }
+  
+  .lq-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 900px) {
+    .lq-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .lq-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  
+  .lq-field label {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-bottom: 4px;
+    white-space: nowrap;
+  }
+  .lq-field input, .lq-field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 9px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+  }
+  .lq-field select { font-family: 'Inter', sans-serif; }
+  .lq-field input:focus, .lq-field select:focus { border-color: var(--accent); }
+  
+  .lq-sheet-sqft {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--ink-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .lq-sheet-sqft b { color: var(--accent); }
+
+  .lq-add-btn {
+    width: 100%;
+    background: var(--bg-panel);
+    border: 1px dashed var(--line);
+    color: var(--accent);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 22px;
+  }
+  .lq-add-btn:hover { border-color: var(--accent); background: #fdfaf8; }
+
+  .lq-body-lower {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 640px) {
+    .lq-body-lower { grid-template-columns: 1fr; }
+  }
+  .lq-field-single { margin-bottom: 12px; }
+  .lq-field-single label {
+    display: block;
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-bottom: 4px;
+  }
+  .lq-field-single input {
+    width: 100%;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+  }
+  .lq-row { display: flex; gap: 10px; }
+  .lq-row .lq-field-single { flex: 1; }
+
+  /* TICKET & VECTOR WATERMARK */
+  .lq-ticket {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .lq-watermark-svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 82%;
+    transform: translate(-50%, -50%) rotate(-8deg);
+    opacity: 0.08;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+
+  .lq-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+    color: var(--ink-dim);
+    position: relative;
+    z-index: 1;
+  }
+  .lq-line span:last-child {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink);
+  }
+  .lq-line-highlight {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .lq-line-highlight span:last-child {
+    color: var(--accent);
+  }
+  .lq-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 14px;
+    margin-top: 6px;
+    position: relative;
+    z-index: 1;
+  }
+  .lq-total .lq-label { font-size: 13px; color: var(--ink-dim); font-weight: 600; }
+  .lq-total .lq-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    color: var(--brand-purple);
+    font-weight: 700;
+  }
+  .lq-persqft {
+    text-align: right;
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-top: 2px;
+    position: relative;
+    z-index: 1;
+  }
+  .lq-persqft b { color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+
+  /* EXPENSE ALLOCATION PANEL */
+  .lq-expense-box {
+    background: #fdfbf7;
+    border: 1px solid #ebdccb;
+    border-radius: 6px;
+    padding: 14px;
+    margin-top: 16px;
+  }
+  .lq-expense-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .lq-expense-row input {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    padding: 4px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+  }
+  .lq-expense-row span.val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    text-align: right;
+    color: var(--ink);
+  }
+
+  /* PRINT STYLES */
+  @media print {
+    body { background: #fff !important; color: #000 !important; }
+    #lq-calc { 
+      background: #fff !important; 
+      color: #000 !important; 
+      padding: 0 !important; 
+      max-width: 100% !important;
+    }
+    
+    .lq-head-actions,
+    .lq-section-title,
+    #lq-sheets,
+    .lq-add-btn,
+    .lq-expense-box,
+    .lq-body-lower > div:first-child {
+      display: none !important;
+    }
+
+    .lq-body-lower { display: block !important; }
+
+    .lq-customer-box {
+      border: 1px solid #000 !important;
+      background: #fff !important;
+      margin-bottom: 20px !important;
+    }
+    .lq-field input {
+      border: none !important;
+      background: transparent !important;
+      color: #000 !important;
+      font-weight: bold;
+      padding: 0 !important;
+    }
+
+    .lq-ticket {
+      border: 2px solid #000 !important;
+      background: #fff !important;
+      color: #000 !important;
+    }
+    .lq-watermark-svg {
+      opacity: 0.12 !important;
+    }
+    .lq-line { border-bottom: 1px solid #ddd !important; color: #333 !important; }
+    .lq-line span:last-child { color: #000 !important; }
+    .lq-total .lq-value { color: #000 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="lq-calc">
+  <div class="lq-head">
+    <div>
+      <h1>GLOBAL LASER CUTTING WORKS</h1>
+      <div class="lq-sub">The Complete Display Solution — Multi-Sheet Worksheet</div>
+    </div>
+    <div class="lq-head-actions">
+      <button class="lq-btn-sm lq-btn-excel" id="lq-excel-btn">Export Excel</button>
+      <button class="lq-btn-sm" id="lq-reset-btn">Reset</button>
+      <button class="lq-btn-sm" id="lq-print-btn">Print / PDF</button>
+    </div>
+  </div>
+
+  <div class="lq-customer-box">
+    <p class="lq-section-title">CUSTOMER DETAILS</p>
+    <div class="lq-customer-grid">
+      <div class="lq-field">
+        <label>Customer Name</label>
+        <input type="text" id="lq-cust-name" value="Shariff Baig" placeholder="Shariff Baig">
+      </div>
+      <div class="lq-field">
+        <label>Contact / Phone</label>
+        <input type="text" id="lq-cust-phone" placeholder="+91 9849863738">
+      </div>
+      <div class="lq-field">
+        <label>Project Ref / PO</label>
+        <input type="text" id="lq-cust-ref" placeholder="JOB-1024">
+      </div>
+      <div class="lq-field">
+        <label>Quote Date</label>
+        <input type="date" id="lq-cust-date">
+      </div>
+    </div>
+  </div>
+
+  <p class="lq-section-title">SHEETS</p>
+  <div id="lq-sheets"></div>
+  <button class="lq-add-btn" id="lq-add-sheet">+ Add sheet</button>
+
+  <div class="lq-body-lower">
+    <div>
+      <p class="lq-section-title">JOB-LEVEL COSTS & PAYMENTS</p>
+
+      <div class="lq-field-single">
+        <label>Design cost (₹)</label>
+        <input type="number" id="lq-design" value="1500" step="50" min="0">
+      </div>
+
+      <div class="lq-row">
+        <div class="lq-field-single">
+          <label>Wastage (%)</label>
+          <input type="number" id="lq-wastage" value="12" step="0.1" min="0" readonly style="opacity: 0.8; cursor: not-allowed;">
+        </div>
+        <div class="lq-field-single">
+          <label>Margin (%)</label>
+          <input type="number" id="lq-margin" value="20" step="1" min="0">
+        </div>
+      </div>
+
+      <div class="lq-row">
+        <div class="lq-field-single">
+          <label>GST (%)</label>
+          <input type="number" id="lq-gst" value="18" step="1" min="0">
+        </div>
+        <div class="lq-field-single">
+          <label>Advance Received (₹)</label>
+          <input type="number" id="lq-advance" value="5000" step="500" min="0">
+        </div>
+      </div>
+
+      <!-- INTERNAL EXPENSE & SAVINGS SPLIT -->
+      <div class="lq-expense-box">
+        <p class="lq-section-title" style="margin-bottom:8px;">INTERNAL EXPENSE & SAVINGS ALLOCATION</p>
+        
+        <div class="lq-expense-row">
+          <span>Raw Material Reserve</span>
+          <input type="number" id="lq-pct-mat" value="45" min="0" max="100">%
+          <span class="val" id="lq-val-mat">₹0</span>
+        </div>
+        <div class="lq-expense-row">
+          <span>Oxygen/Gas Reserve</span>
+          <input type="number" id="lq-pct-gas" value="10" min="0" max="100">%
+          <span class="val" id="lq-val-gas">₹0</span>
+        </div>
+        <div class="lq-expense-row">
+          <span>Worker Salaries / Labor</span>
+          <input type="number" id="lq-pct-sal" value="15" min="0" max="100">%
+          <span class="val" id="lq-val-sal">₹0</span>
+        </div>
+        <div class="lq-expense-row">
+          <span>Monthly Savings Fund</span>
+          <input type="number" id="lq-pct-sav" value="10" min="0" max="100">%
+          <span class="val" id="lq-val-sav">₹0</span>
+        </div>
+        <div class="lq-expense-row" style="border-top:1px dashed var(--line); padding-top:6px; font-weight:bold;">
+          <span>Net Factory Profit</span>
+          <span id="lq-pct-profit" style="text-align:right;">20%</span>
+          <span class="val" id="lq-val-profit" style="color:var(--good);">₹0</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+      <p class="lq-section-title">QUOTE & PAYMENT SUMMARY</p>
+      <div class="lq-ticket">
+        
+        <!-- ENHANCED VECTOR WATERMARK LOGO -->
+        <svg class="lq-watermark-svg" viewBox="0 0 400 130" xmlns="http://www.w3.org/2000/svg">
+          <!-- MAIN BRAND: GLOBAL -->
+          <text x="10" y="52" font-family="'Inter', sans-serif" font-weight="900" font-size="52" fill="#533972" letter-spacing="2">GL</text>
+          
+          <!-- LASER CUTTING GRID 'O' -->
+          <g transform="translate(92, 10)">
+            <circle cx="20" cy="24" r="20" fill="#533972" />
+            <!-- Laser Slits -->
+            <rect x="0" y="8" width="40" height="2.5" fill="#ffffff" />
+            <rect x="0" y="15" width="40" height="2.5" fill="#ffffff" />
+            <rect x="0" y="22" width="40" height="2.5" fill="#ffffff" />
+            <rect x="0" y="29" width="40" height="2.5" fill="#ffffff" />
+            <rect x="0" y="36" width="40" height="2.5" fill="#ffffff" />
+            <!-- Laser Beam Center -->
+            <path d="M 16 22 L 20 12 L 24 22 L 20 32 Z" fill="#e06d44" />
+          </g>
+          
+          <text x="138" y="52" font-family="'Inter', sans-serif" font-weight="900" font-size="52" fill="#533972" letter-spacing="2">BAL</text>
+
+          <!-- SUB-BRAND: LASER CUTTING WORKS -->
+          <text x="12" y="82" font-family="'Inter', sans-serif" font-weight="800" font-size="20" fill="#e06d44" letter-spacing="3.5">LASER CUTTING WORKS</text>
+          
+          <!-- TAGLINE: THE COMPLETE DISPLAY SOLUTION -->
+          <text x="12" y="104" font-family="'Inter', sans-serif" font-weight="700" font-size="12" fill="#2c2c2c" letter-spacing="2">THE COMPLETE DISPLAY SOLUTION</text>
+        </svg>
+
+        <div class="lq-line"><span>Total area</span><span id="lq-out-totalsqft">—</span></div>
+        <div class="lq-line"><span>Total material weight</span><span id="lq-out-weight">—</span></div>
+        <div class="lq-line"><span>Material cost (all sheets)</span><span id="lq-out-matcost">—</span></div>
+        <div class="lq-line"><span>Cutting cost (all sheets)</span><span id="lq-out-cutcost">—</span></div>
+        <div class="lq-line"><span>Design cost</span><span id="lq-out-descost">—</span></div>
+        <div class="lq-line"><span>Subtotal</span><span id="lq-out-subtotal">—</span></div>
+        <div class="lq-line"><span>+ Wastage</span><span id="lq-out-wastage">—</span></div>
+        <div class="lq-line"><span>+ Margin</span><span id="lq-out-marginval">—</span></div>
+        <div class="lq-line"><span>+ GST</span><span id="lq-out-gstval">—</span></div>
+
+        <div class="lq-total">
+          <span class="lq-label">Final quote</span>
+          <span class="lq-value" id="lq-out-total">₹0</span>
+        </div>
+        <div class="lq-persqft">₹<b id="lq-out-persqft">0</b> / sq ft (blended)</div>
+
+        <div style="border-top: 1px solid var(--line); margin-top: 12px; padding-top: 8px; position: relative; z-index: 1;">
+          <div class="lq-line"><span>Advance Received</span><span id="lq-out-advance">—</span></div>
+          <div class="lq-line lq-line-highlight"><span>Pending Balance</span><span id="lq-out-balance">—</span></div>
+          <div class="lq-line"><span>Payment Status</span><span id="lq-out-status" style="font-weight: 600;">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const $ = id => document.getElementById(id);
+  const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  let sheetCount = 0;
+
+  $('lq-cust-date').valueAsDate = new Date();
+
+  const UNITS = [
+    { id: 'in', label: 'Inches (in)', toInches: 1 },
+    { id: 'mm', label: 'Millimeters (mm)', toInches: 0.0393701 },
+    { id: 'cm', label: 'Centimeters (cm)', toInches: 0.393701 },
+    { id: 'ft', label: 'Feet (ft)', toInches: 12 },
+    { id: 'm', label: 'Meters (m)', toInches: 39.3701 }
+  ];
+
+  const MATERIALS = [
+    { id: 'ms', name: 'MS (Mild Steel)', density: 7.85, defaultRate: 75 },
+    { id: 'ss', name: 'SS (Stainless)', density: 7.90, defaultRate: 220 },
+    { id: 'alu', name: 'Aluminium', density: 2.70, defaultRate: 210 },
+    { id: 'brass', name: 'Brass', density: 8.50, defaultRate: 620 }
+  ];
+
+  const DESIGNS = [
+    { id: 'solid', label: 'Solid / Outer Frame Only', baseWastage: 5 },
+    { id: 'medium', label: 'Standard Jali / Patterns', baseWastage: 12 },
+    { id: 'heavy', label: 'Heavy Filigree / Intricate', baseWastage: 22 }
+  ];
+
+  function unitOptions(selectedUnit) {
+    return UNITS.map(u => `<option value="${u.id}" ${u.id === selectedUnit ? 'selected' : ''}>${u.label}</option>`).join('');
+  }
+
+  function materialOptions(selectedDensity) {
+    return MATERIALS.map(m =>
+      `<option value="${m.density}" data-rate="${m.defaultRate}" ${m.density == selectedDensity ? 'selected' : ''}>${m.name}</option>`
+    ).join('');
+  }
+
+  function designOptions(selectedDesign) {
+    return DESIGNS.map(d =>
+      `<option value="${d.baseWastage}" ${d.id === selectedDesign ? 'selected' : ''}>${d.label}</option>`
+    ).join('');
+  }
+
+  function addSheet(defaults) {
+    sheetCount++;
+    const id = sheetCount;
+    const d = Object.assign({
+      qty: 1, unit: 'in', width: 60, height: 84, thickness: 2, design: 'medium', material: 7.85, rate: 75, cutting: 4500
+    }, defaults || {});
+
+    const div = document.createElement('div');
+    div.className = 'lq-sheet';
+    div.dataset.id = id;
+    div.innerHTML = `
+      <div class="lq-sheet-top">
+        <span class="lq-sheet-label">SHEET CONFIG ${id}</span>
+        <button class="lq-sheet-remove" data-remove="${id}">remove</button>
+      </div>
+      <div class="lq-grid">
+        <div class="lq-field"><label>Qty</label><input type="number" class="lq-s-qty" value="${d.qty}" min="1"></div>
+        <div class="lq-field"><label>Unit</label><select class="lq-s-unit">${unitOptions(d.unit)}</select></div>
+        <div class="lq-field"><label>Width</label><input type="number" class="lq-s-width" value="${d.width}"></div>
+        <div class="lq-field"><label>Height</label><input type="number" class="lq-s-height" value="${d.height}"></div>
+        <div class="lq-field"><label>Thickness (mm)</label><input type="number" class="lq-s-thickness" value="${d.thickness}"></div>
+        <div class="lq-field"><label>Design Type</label><select class="lq-s-design">${designOptions(d.design)}</select></div>
+        <div class="lq-field"><label>Material</label><select class="lq-s-material">${materialOptions(d.material)}</select></div>
+        <div class="lq-field"><label>Rate (₹/kg)</label><input type="number" class="lq-s-rate" value="${d.rate}"></div>
+        <div class="lq-field"><label>Cutting/unit (₹)</label><input type="number" class="lq-s-cutting" value="${d.cutting}"></div>
+      </div>
+      <div class="lq-sheet-sqft">Unit Area: <b class="lq-s-sqft-out">—</b> · Unit Wt: <b class="lq-s-wt-out">—</b> · Sheet Wastage: <b class="lq-s-wastage-out">—</b></div>
+    `;
+    $('lq-sheets').appendChild(div);
+
+    const matSelect = div.querySelector('.lq-s-material');
+    const rateInput = div.querySelector('.lq-s-rate');
+
+    matSelect.addEventListener('change', (e) => {
+      rateInput.value = e.target.options[e.target.selectedIndex].dataset.rate;
+      calc();
+    });
+
+    div.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', calc);
+      el.addEventListener('change', calc);
+    });
+    div.querySelector('[data-remove]').addEventListener('click', () => { div.remove(); calc(); });
+  }
+
+  function calc() {
+    let totalSqft = 0, totalWeight = 0, totalMatCost = 0, totalCutting = 0, weightedWastageSum = 0;
+
+    document.querySelectorAll('.lq-sheet').forEach(div => {
+      const qty = parseFloat(div.querySelector('.lq-s-qty').value) || 0;
+      const unitKey = div.querySelector('.lq-s-unit').value;
+      const unitObj = UNITS.find(u => u.id === unitKey) || UNITS[0];
+      const widthInInches = (parseFloat(div.querySelector('.lq-s-width').value) || 0) * unitObj.toInches;
+      const heightInInches = (parseFloat(div.querySelector('.lq-s-height').value) || 0) * unitObj.toInches;
+      const thickness = parseFloat(div.querySelector('.lq-s-thickness').value) || 0;
+      const baseDesignWastage = parseFloat(div.querySelector('.lq-s-design').value) || 0;
+      
+      const sheetWastagePct = baseDesignWastage + (thickness > 2 ? (thickness - 2) * 0.5 : 0);
+      const density = parseFloat(div.querySelector('.lq-s-material').value) || 0;
+      const rate = parseFloat(div.querySelector('.lq-s-rate').value) || 0;
+      const cutting = parseFloat(div.querySelector('.lq-s-cutting').value) || 0;
+
+      const unitSqft = (widthInInches * heightInInches) / 144;
+      const unitWeightKg = (widthInInches * heightInInches * 0.00064516) * thickness * density;
+      const lineWeightKg = unitWeightKg * qty;
+      const lineSqft = unitSqft * qty;
+      const lineMatCost = lineWeightKg * rate;
+      const lineCuttingCost = cutting * qty;
+
+      div.querySelector('.lq-s-sqft-out').textContent = unitSqft.toFixed(2) + ' sq ft';
+      div.querySelector('.lq-s-wt-out').textContent = unitWeightKg.toFixed(1) + ' kg';
+      div.querySelector('.lq-s-wastage-out').textContent = sheetWastagePct.toFixed(1) + '%';
+
+      totalSqft += lineSqft;
+      totalWeight += lineWeightKg;
+      totalMatCost += lineMatCost;
+      totalCutting += lineCuttingCost;
+      weightedWastageSum += (sheetWastagePct * lineMatCost);
+    });
+
+    const effectiveWastagePct = totalMatCost > 0 ? (weightedWastageSum / totalMatCost) : 12;
+    $('lq-wastage').value = effectiveWastagePct.toFixed(1);
+
+    const design = parseFloat($('lq-design').value) || 0;
+    const marginPct = parseFloat($('lq-margin').value) || 0;
+    const gstPct = parseFloat($('lq-gst').value) || 0;
+    const advanceVal = parseFloat($('lq-advance').value) || 0;
+
+    const subtotal = totalMatCost + totalCutting + design;
+    const wastageVal = subtotal * (effectiveWastagePct / 100);
+    const afterWastage = subtotal + wastageVal;
+    const marginVal = afterWastage * (marginPct / 100);
+    const afterMargin = afterWastage + marginVal;
+    const gstVal = afterMargin * (gstPct / 100);
+    const total = afterMargin + gstVal;
+    const perSqft = totalSqft > 0 ? total / totalSqft : 0;
+
+    const pendingBalance = Math.max(0, total - advanceVal);
+    let payStatus = 'UNPAID', statusColor = 'var(--danger)';
+
+    if (advanceVal >= total && total > 0) {
+      payStatus = 'PAID'; statusColor = 'var(--good)';
+    } else if (advanceVal > 0) {
+      payStatus = 'PARTIAL'; statusColor = 'var(--accent)';
+    }
+
+    // EXPENSE ALLOCATION CALCULATIONS
+    const pMat = parseFloat($('lq-pct-mat').value) || 0;
+    const pGas = parseFloat($('lq-pct-gas').value) || 0;
+    const pSal = parseFloat($('lq-pct-sal').value) || 0;
+    const pSav = parseFloat($('lq-pct-sav').value) || 0;
+    const pProfit = Math.max(0, 100 - (pMat + pGas + pSal + pSav));
+
+    $('lq-pct-profit').textContent = pProfit + '%';
+    $('lq-val-mat').textContent = fmt(total * (pMat / 100));
+    $('lq-val-gas').textContent = fmt(total * (pGas / 100));
+    $('lq-val-sal').textContent = fmt(total * (pSal / 100));
+    $('lq-val-sav').textContent = fmt(total * (pSav / 100));
+    $('lq-val-profit').textContent = fmt(total * (pProfit / 100));
+
+    $('lq-out-totalsqft').textContent = totalSqft.toFixed(2) + ' sq ft';
+    $('lq-out-weight').textContent = totalWeight.toFixed(1) + ' kg';
+    $('lq-out-matcost').textContent = fmt(totalMatCost);
+    $('lq-out-cutcost').textContent = fmt(totalCutting);
+    $('lq-out-descost').textContent = fmt(design);
+    $('lq-out-subtotal').textContent = fmt(subtotal);
+    $('lq-out-wastage').textContent = fmt(wastageVal);
+    $('lq-out-marginval').textContent = fmt(marginVal);
+    $('lq-out-gstval').textContent = fmt(gstVal);
+    $('lq-out-total').textContent = fmt(total);
+    $('lq-out-persqft').textContent = Math.round(perSqft).toLocaleString('en-IN');
+
+    $('lq-out-advance').textContent = fmt(advanceVal);
+    $('lq-out-balance').textContent = fmt(pendingBalance);
+    
+    const statusEl = $('lq-out-status');
+    statusEl.textContent = payStatus;
+    statusEl.style.color = statusColor;
+  }
+
+  $('lq-excel-btn').addEventListener('click', () => {
+    if (typeof XLSX === 'undefined') return alert("Excel library loading. Try again.");
+
+    const custName = $('lq-cust-name').value.trim() || 'Shariff Baig';
+    const custRef = $('lq-cust-ref').value.trim() || 'N/A';
+    const custDate = $('lq-cust-date').value || new Date().toISOString().split('T')[0];
+
+    const wb = XLSX.utils.book_new();
+
+    const headers = [
+      "Date", "Customer Name", "Job Ref / PO", "Total Area", 
+      "Final Quote", "Advance Received", "Pending Balance", "Payment Status",
+      "Material Fund", "Gas Fund", "Salaries Reserve", "Monthly Savings", "Net Profit"
+    ];
+
+    const dataRow = [
+      custDate, custName, custRef,
+      $('lq-out-totalsqft').textContent,
+      $('lq-out-total').textContent,
+      $('lq-out-advance').textContent,
+      $('lq-out-balance').textContent,
+      $('lq-out-status').textContent,
+      $('lq-val-mat').textContent,
+      $('lq-val-gas').textContent,
+      $('lq-val-sal').textContent,
+      $('lq-val-sav').textContent,
+      $('lq-val-profit').textContent
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet([headers, dataRow]);
+    ws['!cols'] = Array(13).fill({ wch: 18 });
+
+    XLSX.utils.book_append_sheet(wb, ws, "Quote Summary");
+    XLSX.writeFile(wb, `Quote_${custName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${custDate}.xlsx`);
+  });
+
+  $('lq-add-sheet').addEventListener('click', () => { addSheet(); calc(); });
+  $('lq-print-btn').addEventListener('click', () => window.print());
+  $('lq-reset-btn').addEventListener('click', () => {
+    $('lq-sheets').innerHTML = '';
+    sheetCount = 0;
+    $('lq-cust-name').value = 'Shariff Baig';
+    $('lq-cust-phone').value = '';
+    $('lq-cust-ref').value = '';
+    $('lq-cust-date').valueAsDate = new Date();
+    $('lq-advance').value = 0;
+    addSheet({ width: 60, height: 84, thickness: 2, design: 'medium', unit: 'in' });
+    calc();
+  });
+
+  document.querySelectorAll('#lq-calc input, #lq-calc select')
+    .forEach(el => { if (!el.closest('.lq-sheet')) { el.addEventListener('input', calc); el.addEventListener('change', calc); } });
+
+  addSheet({ width: 60, height: 84, thickness: 2, design: 'medium', unit: 'in' });
+  calc();
+})();
+</script>
+</body>
+</html>
